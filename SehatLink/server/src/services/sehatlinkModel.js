@@ -5,7 +5,7 @@ class SehatlinkMedicalModel {
         this.modelName = 'sehatlink-fast';
         this.isReady = false;
         this.apiUrl = 'http://localhost:11434/api/generate';
-        this.externalAPIKey = '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';
+        this.externalAPIKey = '';
     }
 
     async initialize() {
