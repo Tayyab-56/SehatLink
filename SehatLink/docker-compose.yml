@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: sehatlink_postgres
+    environment:
+      POSTGRES_DB: sehatlink
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tayyab1075      # ← CHANGE THIS
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:6
+    container_name: sehatlink_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin      # ← ADD THIS
+      MONGO_INITDB_ROOT_PASSWORD: mongopass  # ← ADD THIS
+      MONGO_INITDB_DATABASE: sehatlink
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  neo4j:
+    image: neo4j:5
+    container_name: sehatlink_neo4j
+    environment:
+      NEO4J_AUTH: neo4j/tayyab1075           # ← CHANGE THIS
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  neo4j_data:
