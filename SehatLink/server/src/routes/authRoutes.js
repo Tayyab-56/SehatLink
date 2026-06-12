@@ -6,14 +6,12 @@ const { register, login, getUserById, uploadAvatar, updateProfile, getCompletePr
 
 const router = express.Router();
 
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '../../uploads/avatars');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log('Created uploads directory:', uploadDir);
 }
 
-// Configure multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -39,23 +37,19 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ 
   storage: storage, 
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: fileFilter 
 });
 
-// Public routes
 router.post('/register', register);
 router.post('/login', login);
 router.get('/users/:id', getUserById);
 
-// Protected routes
 router.post('/upload-avatar', upload.single('avatar'), uploadAvatar);
 router.put('/profile/:userId', updateProfile);
-// Add this route to authRoutes.js
 router.get('/complete-profile/:userId', getCompleteProfile);
 router.get('/doctor-complete-profile/:userId', getDoctorCompleteProfile);
 router.put('/doctor-profile/:userId', updateDoctorProfile);
-// Error handling middleware for multer
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'FILE_TOO_LARGE') {

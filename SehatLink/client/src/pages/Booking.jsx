@@ -1,19 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
-import { Calendar, Clock, Stethoscope, DollarSign, MapPin, ArrowLeft, Loader, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Clock,
+  Stethoscope,
+  DollarSign,
+  MapPin,
+  ArrowLeft,
+  Loader,
+  AlertCircle,
+} from "lucide-react";
 
 const Booking = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
   const [doctor, setDoctor] = useState(null);
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [symptoms, setSymptoms] = useState('');
+  const [symptoms, setSymptoms] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,88 +38,97 @@ const Booking = () => {
 
   const fetchDoctor = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/doctors/${doctorId}`);
+      const response = await axios.get(
+        `http://localhost:5000/api/doctors/${doctorId}`,
+      );
       setDoctor(response.data.doctor);
     } catch (error) {
-      console.error('Error fetching doctor:', error);
-      toast.error('Failed to load doctor details');
+      console.error("Error fetching doctor:", error);
+      toast.error("Failed to load doctor details");
     } finally {
       setLoading(false);
     }
   };
   const fetchAvailableSlots = async () => {
-  if (!date) return;
-  
-  setLoadingSlots(true);
-  setTime('');
-  setAvailableSlots([]);
-  
-  try {
-    const url = `http://localhost:5000/api/doctors/${doctorId}/available-slots?date=${date}`;
-    console.log('Fetching slots from:', url);
-    
-    const response = await axios.get(url);
-    console.log('Slots response:', response.data);
-    
-    if (response.data.success) {
-      const slots = response.data.slots || [];
-      setAvailableSlots(slots);
-      if (slots.length === 0) {
-        toast('No available slots for this date. Please select another date.');
+    if (!date) return;
+
+    setLoadingSlots(true);
+    setTime("");
+    setAvailableSlots([]);
+
+    try {
+      const url = `http://localhost:5000/api/doctors/${doctorId}/available-slots?date=${date}`;
+      console.log("Fetching slots from:", url);
+
+      const response = await axios.get(url);
+      console.log("Slots response:", response.data);
+
+      if (response.data.success) {
+        const slots = response.data.slots || [];
+        setAvailableSlots(slots);
+        if (slots.length === 0) {
+          toast(
+            "No available slots for this date. Please select another date.",
+          );
+        }
+      } else {
+        toast.error(response.data.message || "Failed to load slots");
       }
-    } else {
-      toast.error(response.data.message || 'Failed to load slots');
+    } catch (error) {
+      console.error("Error fetching slots:", error);
+      toast.error("Failed to load available time slots");
+    } finally {
+      setLoadingSlots(false);
     }
-  } catch (error) {
-    console.error('Error fetching slots:', error);
-    toast.error('Failed to load available time slots');
-  } finally {
-    setLoadingSlots(false);
-  }
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!date || !time) {
-      toast.error('Please select date and time');
+      toast.error("Please select date and time");
       return;
     }
-    
+
     const appointmentDate = new Date(`${date}T${time}`);
-    
+
     if (appointmentDate <= new Date()) {
-      toast.error('Please select a future date and time');
+      toast.error("Please select a future date and time");
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      
+      const userData = JSON.parse(localStorage.getItem("user"));
+
       if (!userData) {
-        toast.error('Please login again');
-        navigate('/login');
+        toast.error("Please login again");
+        navigate("/login");
         return;
       }
-      
-      const response = await axios.post('http://localhost:5000/api/appointments', {
-        doctorId: parseInt(doctorId),
-        appointmentDate: appointmentDate.toISOString(),
-        symptoms,
-        patientId: userData.id
-      });
-      
+
+      const response = await axios.post(
+        "http://localhost:5000/api/appointments",
+        {
+          doctorId: parseInt(doctorId),
+          appointmentDate: appointmentDate.toISOString(),
+          symptoms,
+          patientId: userData.id,
+        },
+      );
+
       if (response.data.success) {
-        toast.success('Appointment booked successfully!');
-        navigate('/appointments');
+        toast.success("Appointment booked successfully!");
+        navigate("/appointments");
       } else {
-        toast.error(response.data.message || 'Booking failed');
+        toast.error(response.data.message || "Booking failed");
       }
     } catch (error) {
-      console.error('Booking error:', error);
-      toast.error(error.response?.data?.message || 'Failed to book appointment');
+      console.error("Booking error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to book appointment",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +137,7 @@ const Booking = () => {
   // Get minimum date (tomorrow)
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
-  const minDateStr = minDate.toISOString().split('T')[0];
+  const minDateStr = minDate.toISOString().split("T")[0];
 
   if (loading) {
     return (
@@ -161,11 +179,15 @@ const Booking = () => {
                 {doctor.name?.charAt(0)}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">{doctor.name}</h2>
-                <p className="text-blue-600 font-medium">{doctor.specialization}</p>
+                <h2 className="text-xl font-bold text-gray-800">
+                  {doctor.name}
+                </h2>
+                <p className="text-blue-600 font-medium">
+                  {doctor.specialization}
+                </p>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-gray-600">
                 <Stethoscope size={18} />
@@ -188,14 +210,21 @@ const Booking = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Book Appointment</h2>
-            
+            <h2 className="text-xl font-bold text-gray-800 mb-6">
+              Book Appointment
+            </h2>
+
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Date Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Date
+                </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Calendar
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="date"
                     min={minDateStr}
@@ -212,10 +241,15 @@ const Booking = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Time
-                    {loadingSlots && <Loader size={14} className="inline ml-2 animate-spin" />}
+                    {loadingSlots && (
+                      <Loader size={14} className="inline ml-2 animate-spin" />
+                    )}
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Clock
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
                     <select
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
@@ -224,15 +258,18 @@ const Booking = () => {
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       <option value="">Select time slot</option>
-                      {availableSlots.map(slot => (
-                        <option key={slot} value={slot}>{slot}</option>
+                      {availableSlots.map((slot) => (
+                        <option key={slot} value={slot}>
+                          {slot}
+                        </option>
                       ))}
                     </select>
                   </div>
                   {!loadingSlots && availableSlots.length === 0 && date && (
                     <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
                       <AlertCircle size={12} />
-                      No available slots for this date. Please select another date.
+                      No available slots for this date. Please select another
+                      date.
                     </p>
                   )}
                 </div>
@@ -240,7 +277,9 @@ const Booking = () => {
 
               {/* Symptoms */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Symptoms (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Symptoms (Optional)
+                </label>
                 <textarea
                   rows="4"
                   value={symptoms}
@@ -253,22 +292,31 @@ const Booking = () => {
               {/* Appointment Summary */}
               {date && time && (
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-1">Appointment Summary:</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Appointment Summary:
+                  </p>
                   <p className="font-medium text-gray-800">
                     {new Date(`${date}T${time}`).toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-600 mt-2">
-                    Fee: <span className="font-semibold text-blue-600">Rs. {doctor.fee}</span>
+                    Fee:{" "}
+                    <span className="font-semibold text-blue-600">
+                      Rs. {doctor.fee}
+                    </span>
                   </p>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={submitting || !date || !time || availableSlots.length === 0}
+                disabled={
+                  submitting || !date || !time || availableSlots.length === 0
+                }
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Booking...' : `Confirm Booking - Rs. ${doctor.fee}`}
+                {submitting
+                  ? "Booking..."
+                  : `Confirm Booking - Rs. ${doctor.fee}`}
               </button>
             </form>
           </motion.div>

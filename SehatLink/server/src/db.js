@@ -6,11 +6,11 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 // ==================== PostgreSQL =====================
 const pgPool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: process.env.PG_PORT || 5432,
-  user: process.env.PG_USER || 'postgres',
-  password: process.env.PG_PASSWORD || 'tayyab1075',
-  database: process.env.PG_DATABASE || 'sehatlink',
+  host: process.env.PG_HOST || '',
+  port: process.env.PG_PORT ,
+  user: process.env.PG_USER || '',
+  password: process.env.PG_PASSWORD || '',
+  database: process.env.PG_DATABASE || '',
   max: 20,
   idleTimeoutMillis: 30000,
 });
@@ -20,9 +20,9 @@ let mongoClient;
 let mongoDb;
 const connectMongoDB = async () => {
   try {
-    mongoClient = new MongoClient(process.env.MONGO_URI || 'mongodb://localhost:27017');
+    mongoClient = new MongoClient(process.env.MONGO_URI || '');
     await mongoClient.connect();
-    mongoDb = mongoClient.db(process.env.MONGO_DB_NAME || 'sehatlink');
+    mongoDb = mongoClient.db(process.env.MONGO_DB_NAME || '');
     console.log('✅ MongoDB connected');
     return mongoDb;
   } catch (error) {
@@ -36,10 +36,10 @@ const getMongoDB = () => mongoDb;
 let neo4jDriver = null;
 const connectNeo4j = async () => {
     try {
-        const neo4jUri = process.env.NEO4J_URI || 'bolt://localhost:7687';
-        const neo4jUser = process.env.NEO4J_USER || 'neo4j';
-        const neo4jPassword = process.env.NEO4J_PASSWORD || 'tayyab1075';
-        const neo4jDatabase = 'sehatlink';
+        const neo4jUri = process.env.NEO4J_URI || '';
+        const neo4jUser = process.env.NEO4J_USER || '';
+        const neo4jPassword = process.env.NEO4J_PASSWORD || '';
+        const neo4jDatabase = '';
         neo4jDriver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
         await neo4jDriver.verifyConnectivity();
         const session = neo4jDriver.session({ database: neo4jDatabase });

@@ -55,7 +55,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-gray-400">
               <li>📞 +92 300 1234567</li>
               <li>✉️ support@sehatlink.com</li>
-              <li>📍 Karachi, Pakistan</li>
+              <li>📍 Lahore, Pakistan</li>
             </ul>
           </div>
           <div>
@@ -64,13 +64,13 @@ const Footer = () => {
             </h3>
             <div className="flex gap-3 text-xl">
               <a href="#" className="hover:text-blue-400">
-                📘
+                insta
               </a>
               <a href="#" className="hover:text-blue-400">
-                🐦
+                twitter
               </a>
               <a href="#" className="hover:text-blue-400">
-                📷
+                facebook
               </a>
             </div>
             <p className="text-gray-500 text-xs mt-4">

@@ -13,18 +13,12 @@ const {
 
 const router = express.Router();
 
-// Make sure all required functions exist
-// If any function is missing, add a placeholder
-
-// User lists for chat
 router.get('/doctor-patients/:doctorId', getDoctorChatPatients || ((req, res) => res.json({ success: true, patients: [] })));
 router.get('/patient-doctors/:patientId', getPatientChatDoctors || ((req, res) => res.json({ success: true, doctors: [] })));
 
-// Conversation routes
 router.get('/conversations', getUserConversations || ((req, res) => res.json({ success: true, conversations: [] })));
 router.get('/conversation/:patientId/:doctorId', getOrCreateConversation || ((req, res) => res.json({ success: true, conversation: null })));
 
-// Message routes
 router.get('/messages/:conversationId', getMessages || ((req, res) => res.json({ success: true, messages: [] })));
 router.post('/message', sendMessage || ((req, res) => res.json({ success: true, message: null })));
 router.post('/message/file', upload.single('file'), sendFileMessage || ((req, res) => res.json({ success: true, message: null })));

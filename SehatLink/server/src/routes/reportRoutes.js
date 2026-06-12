@@ -11,14 +11,12 @@ const {
 
 const router = express.Router();
 
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log('✅ Uploads directory created at:', uploadDir);
 }
 
-// Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -30,7 +28,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   if (allowedTypes.includes(file.mimetype)) {
@@ -40,14 +37,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Multer configuration with error handling
 const upload = multer({ 
   storage: storage, 
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: fileFilter
 });
 
-// Routes
 router.post('/upload', upload.single('file'), (req, res, next) => {
   if (req.file) {
     console.log('File uploaded:', req.file.filename);

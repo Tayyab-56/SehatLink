@@ -3,31 +3,22 @@ const { ObjectId } = require('mongodb');
 const fs = require('fs');
 const path = require('path');
 
-// Upload medical report to MongoDB
 const uploadReport = async (req, res) => {
   try {
     console.log('=== UPLOAD REQUEST RECEIVED ===');
     console.log('Body:', req.body);
     console.log('File:', req.file ? req.file.filename : 'No file');
-    
     const { patientId, title, reportType, description, results, doctorId, appointmentId } = req.body;
-    
-    // Validate required fields
     if (!patientId) {
       return res.status(400).json({ success: false, message: 'Patient ID is required' });
     }
-    
     if (!title) {
       return res.status(400).json({ success: false, message: 'Report title is required' });
     }
-    
     if (!reportType) {
       return res.status(400).json({ success: false, message: 'Report type is required' });
     }
-    
     const mongoDb = getMongoDB();
-    
-    // Parse results if provided as JSON string
     let parsedResults = {};
     if (results) {
       try {
@@ -37,8 +28,6 @@ const uploadReport = async (req, res) => {
         parsedResults = { raw: results };
       }
     }
-    
-    // Create report document
     const report = {
       patientId: parseInt(patientId),
       reportType: reportType,
@@ -56,21 +45,15 @@ const uploadReport = async (req, res) => {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
     const result = await mongoDb.collection('reports').insertOne(report);
-    
     console.log('✅ Report saved with ID:', result.insertedId);
-    
     res.status(201).json({
       success: true,
       message: 'Report uploaded successfully',
       report: { ...report, _id: result.insertedId }
     });
-    
   } catch (error) {
     console.error('Upload report error:', error);
-    
-    // Clean up uploaded file if database insert fails
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(req.file.path);
@@ -79,7 +62,6 @@ const uploadReport = async (req, res) => {
         console.error('Error deleting file:', err);
       }
     }
-    
     res.status(500).json({ 
       success: false, 
       message: error.message || 'Failed to upload report'
@@ -91,26 +73,20 @@ const uploadReport = async (req, res) => {
 const getPatientReports = async (req, res) => {
   try {
     const patientId = req.query.patientId;
-    
     if (!patientId) {
       return res.status(400).json({ success: false, message: 'Patient ID is required' });
     }
-    
     const mongoDb = getMongoDB();
-    
     const reports = await mongoDb.collection('reports')
       .find({ patientId: parseInt(patientId) })
       .sort({ createdAt: -1 })
       .toArray();
-    
     console.log(`Found ${reports.length} reports for patient ${patientId}`);
-    
     res.json({
       success: true,
       reports: reports,
       count: reports.length
     });
-    
   } catch (error) {
     console.error('Get reports error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -122,23 +98,19 @@ const getReportById = async (req, res) => {
   try {
     const { id } = req.params;
     const mongoDb = getMongoDB();
-    
     let report;
     try {
       report = await mongoDb.collection('reports').findOne({ _id: new ObjectId(id) });
     } catch (err) {
       return res.status(404).json({ success: false, message: 'Report not found' });
     }
-    
     if (!report) {
       return res.status(404).json({ success: false, message: 'Report not found' });
     }
-    
     res.json({
       success: true,
       report: report
     });
-    
   } catch (error) {
     console.error('Get report error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -150,17 +122,11 @@ const deleteReport = async (req, res) => {
   try {
     const { id } = req.params;
     const mongoDb = getMongoDB();
-    
-    // Get report to delete file as well
     const report = await mongoDb.collection('reports').findOne({ _id: new ObjectId(id) });
-    
     const result = await mongoDb.collection('reports').deleteOne({ _id: new ObjectId(id) });
-    
     if (result.deletedCount === 0) {
       return res.status(404).json({ success: false, message: 'Report not found' });
     }
-    
-    // Delete physical file if exists
     if (report && report.fileUrl) {
       const filePath = path.join(__dirname, '../../', report.fileUrl);
       try {
@@ -172,12 +138,10 @@ const deleteReport = async (req, res) => {
         console.error('Error deleting file:', err);
       }
     }
-    
     res.json({
       success: true,
       message: 'Report deleted successfully'
     });
-    
   } catch (error) {
     console.error('Delete report error:', error);
     res.status(500).json({ success: false, message: error.message });

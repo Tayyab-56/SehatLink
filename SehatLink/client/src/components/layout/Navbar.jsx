@@ -64,7 +64,6 @@ const Navbar = () => {
       { name: "Users", path: "/admin-users", icon: Users },
       { name: "Doctors", path: "/admin-doctors", icon: Stethoscope },
       { name: "Appointments", path: "/admin-appointments", icon: Calendar },
-      { name: "Reports", path: "/admin-reports", icon: FileText },
     ];
   }
 

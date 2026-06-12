@@ -30,7 +30,7 @@ import {
   Heart,
   FileText,
   Loader,
-  X
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -50,7 +50,7 @@ const DoctorDashboard = () => {
     revenue: 0,
     patients: 0,
     rating: 4.8,
-    todayAppointments: 0
+    todayAppointments: 0,
   });
   const [doctorInfo, setDoctorInfo] = useState(null);
 
@@ -64,7 +64,7 @@ const DoctorDashboard = () => {
       const userData = JSON.parse(localStorage.getItem("user"));
       if (userData) {
         const doctorRes = await axios.get(
-          `http://localhost:5000/api/doctors/by-user/${userData.id}`
+          `http://localhost:5000/api/doctors/by-user/${userData.id}`,
         );
         setDoctorInfo(doctorRes.data.doctor);
       }
@@ -79,7 +79,7 @@ const DoctorDashboard = () => {
       if (userData) {
         console.log("Fetching appointments for doctor userId:", userData.id);
         const response = await axios.get(
-          `http://localhost:5000/api/appointments/doctor?userId=${userData.id}`
+          `http://localhost:5000/api/appointments/doctor?userId=${userData.id}`,
         );
         console.log("Doctor appointments response:", response.data);
         const data = response.data.appointments || [];
@@ -107,7 +107,7 @@ const DoctorDashboard = () => {
           todayAppointments: data.filter(
             (a) =>
               new Date(a.appointment_date).toDateString() ===
-              new Date().toDateString()
+              new Date().toDateString(),
           ).length,
         });
       }
@@ -133,7 +133,7 @@ const DoctorDashboard = () => {
         {
           status: status,
           userId: userData.id,
-        }
+        },
       );
 
       if (response.data.success) {
@@ -146,7 +146,7 @@ const DoctorDashboard = () => {
     } catch (error) {
       console.error("Error updating appointment:", error);
       toast.error(
-        error.response?.data?.message || "Failed to update appointment"
+        error.response?.data?.message || "Failed to update appointment",
       );
     }
   };
@@ -179,22 +179,63 @@ const DoctorDashboard = () => {
   const getCardColor = (index) => {
     const colors = [
       { border: "border-blue-500", bg: "bg-blue-100", text: "text-blue-600" },
-      { border: "border-yellow-500", bg: "bg-yellow-100", text: "text-yellow-600" },
-      { border: "border-green-500", bg: "bg-green-100", text: "text-green-600" },
-      { border: "border-purple-500", bg: "bg-purple-100", text: "text-purple-600" },
-      { border: "border-indigo-500", bg: "bg-indigo-100", text: "text-indigo-600" },
+      {
+        border: "border-yellow-500",
+        bg: "bg-yellow-100",
+        text: "text-yellow-600",
+      },
+      {
+        border: "border-green-500",
+        bg: "bg-green-100",
+        text: "text-green-600",
+      },
+      {
+        border: "border-purple-500",
+        bg: "bg-purple-100",
+        text: "text-purple-600",
+      },
+      {
+        border: "border-indigo-500",
+        bg: "bg-indigo-100",
+        text: "text-indigo-600",
+      },
       { border: "border-pink-500", bg: "bg-pink-100", text: "text-pink-600" },
     ];
     return colors[index % colors.length];
   };
 
   const statsCards = [
-    { title: "Total Appointments", value: stats.total, icon: Calendar, change: "+12%" },
+    {
+      title: "Total Appointments",
+      value: stats.total,
+      icon: Calendar,
+      change: "+12%",
+    },
     { title: "Pending", value: stats.pending, icon: Clock, change: "+5%" },
-    { title: "Confirmed", value: stats.confirmed, icon: CheckCircle, change: "+8%" },
-    { title: "Completed", value: stats.completed, icon: Activity, change: "+15%" },
-    { title: "Total Revenue", value: `Rs. ${stats.revenue.toLocaleString()}`, icon: DollarSign, change: "+20%" },
-    { title: "Unique Patients", value: stats.patients, icon: Users, change: "+10%" },
+    {
+      title: "Confirmed",
+      value: stats.confirmed,
+      icon: CheckCircle,
+      change: "+8%",
+    },
+    {
+      title: "Completed",
+      value: stats.completed,
+      icon: Activity,
+      change: "+15%",
+    },
+    {
+      title: "Total Revenue",
+      value: `Rs. ${stats.revenue.toLocaleString()}`,
+      icon: DollarSign,
+      change: "+20%",
+    },
+    {
+      title: "Unique Patients",
+      value: stats.patients,
+      icon: Users,
+      change: "+10%",
+    },
   ];
 
   if (loading) {
@@ -212,8 +253,12 @@ const DoctorDashboard = () => {
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-white">Doctor Dashboard</h1>
-              <p className="text-blue-100 mt-1">Welcome back, Dr. {user?.name}</p>
+              <h1 className="text-2xl font-bold text-white">
+                Doctor Dashboard
+              </h1>
+              <p className="text-blue-100 mt-1">
+                Welcome back, Dr. {user?.name}
+              </p>
               <div className="flex items-center gap-4 mt-3">
                 <div className="flex items-center gap-1 text-white/80 text-sm">
                   <Star size={14} className="text-yellow-300 fill-yellow-300" />
@@ -232,7 +277,9 @@ const DoctorDashboard = () => {
             <div className="text-right">
               <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
                 <p className="text-white text-sm">Today's Schedule</p>
-                <p className="text-white font-bold">{stats.todayAppointments} Appointments</p>
+                <p className="text-white font-bold">
+                  {stats.todayAppointments} Appointments
+                </p>
               </div>
             </div>
           </div>
@@ -253,10 +300,14 @@ const DoctorDashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-500 text-xs">{stat.title}</p>
-                    <p className="text-xl font-bold text-gray-800">{stat.value}</p>
+                    <p className="text-xl font-bold text-gray-800">
+                      {stat.value}
+                    </p>
                     <p className="text-green-600 text-xs">{stat.change}</p>
                   </div>
-                  <div className={`w-8 h-8 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                  <div
+                    className={`w-8 h-8 ${colors.bg} rounded-lg flex items-center justify-center`}
+                  >
                     <stat.icon size={16} className={colors.text} />
                   </div>
                 </div>
@@ -269,12 +320,19 @@ const DoctorDashboard = () => {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b flex flex-wrap justify-between items-center gap-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-800">Appointment Requests</h2>
-              <p className="text-gray-500 text-sm">Manage patient appointments</p>
+              <h2 className="text-lg font-bold text-gray-800">
+                Appointment Requests
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Manage patient appointments
+              </p>
             </div>
             <div className="flex gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
                 <input
                   type="text"
                   placeholder="Search patient..."
@@ -321,13 +379,22 @@ const DoctorDashboard = () => {
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">{apt.patient_name}</h3>
+                        <h3 className="font-semibold text-gray-800">
+                          {apt.patient_name}
+                        </h3>
                         <div className="flex flex-wrap gap-3 mt-1">
                           <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <Calendar size={12} /> {new Date(apt.appointment_date).toLocaleDateString()}
+                            <Calendar size={12} />{" "}
+                            {new Date(
+                              apt.appointment_date,
+                            ).toLocaleDateString()}
                           </span>
                           <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <Clock size={12} /> {new Date(apt.appointment_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            <Clock size={12} />{" "}
+                            {new Date(apt.appointment_date).toLocaleTimeString(
+                              [],
+                              { hour: "2-digit", minute: "2-digit" },
+                            )}
                           </span>
                           {apt.patient_age && (
                             <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -336,7 +403,9 @@ const DoctorDashboard = () => {
                           )}
                         </div>
                         {apt.symptoms && (
-                          <p className="text-sm text-gray-500 mt-1">Symptoms: {apt.symptoms}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Symptoms: {apt.symptoms}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -384,7 +453,10 @@ const DoctorDashboard = () => {
               <div>
                 <p className="text-purple-100 text-sm">Completion Rate</p>
                 <p className="text-2xl font-bold">
-                  {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                  {stats.total > 0
+                    ? Math.round((stats.completed / stats.total) * 100)
+                    : 0}
+                  %
                 </p>
               </div>
               <TrendingUp size={32} className="text-purple-200" />
@@ -405,7 +477,10 @@ const DoctorDashboard = () => {
       {/* Appointment Details Modal */}
       <AnimatePresence>
         {selectedAppointment && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedAppointment(null)}>
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedAppointment(null)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -414,7 +489,9 @@ const DoctorDashboard = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-                <h2 className="text-xl font-bold text-gray-800">Appointment Details</h2>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Appointment Details
+                </h2>
                 <button
                   onClick={() => setSelectedAppointment(null)}
                   className="p-1 hover:bg-gray-100 rounded-lg"
@@ -433,23 +510,36 @@ const DoctorDashboard = () => {
                     <h3 className="text-lg font-bold text-gray-800">
                       {selectedAppointment.patient_name}
                     </h3>
-                    <p className="text-gray-500">{selectedAppointment.patient_age || 'Age not specified'} years old</p>
+                    <p className="text-gray-500">
+                      {selectedAppointment.patient_age || "Age not specified"}{" "}
+                      years old
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <Phone size={16} className="text-gray-400" />
-                    <span>{selectedAppointment.patient_phone || "Not provided"}</span>
+                    <span>
+                      {selectedAppointment.patient_phone || "Not provided"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Calendar size={16} className="text-gray-400" />
-                    <span>{new Date(selectedAppointment.appointment_date).toLocaleString()}</span>
+                    <span>
+                      {new Date(
+                        selectedAppointment.appointment_date,
+                      ).toLocaleString()}
+                    </span>
                   </div>
                   {selectedAppointment.symptoms && (
                     <div className="bg-yellow-50 p-3 rounded-lg">
-                      <p className="text-sm font-medium text-yellow-800">Symptoms</p>
-                      <p className="text-sm text-yellow-700">{selectedAppointment.symptoms}</p>
+                      <p className="text-sm font-medium text-yellow-800">
+                        Symptoms
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        {selectedAppointment.symptoms}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -457,13 +547,23 @@ const DoctorDashboard = () => {
                 {selectedAppointment.status === "pending" && (
                   <div className="flex gap-3 pt-4">
                     <button
-                      onClick={() => updateAppointmentStatus(selectedAppointment.id, "confirmed")}
+                      onClick={() =>
+                        updateAppointmentStatus(
+                          selectedAppointment.id,
+                          "confirmed",
+                        )
+                      }
                       className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
                     >
                       <CheckCircle size={18} /> Accept
                     </button>
                     <button
-                      onClick={() => updateAppointmentStatus(selectedAppointment.id, "cancelled")}
+                      onClick={() =>
+                        updateAppointmentStatus(
+                          selectedAppointment.id,
+                          "cancelled",
+                        )
+                      }
                       className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
                     >
                       <XCircle size={18} /> Reject
@@ -473,7 +573,12 @@ const DoctorDashboard = () => {
 
                 {selectedAppointment.status === "confirmed" && (
                   <button
-                    onClick={() => updateAppointmentStatus(selectedAppointment.id, "completed")}
+                    onClick={() =>
+                      updateAppointmentStatus(
+                        selectedAppointment.id,
+                        "completed",
+                      )
+                    }
                     className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
                   >
                     Mark as Completed

@@ -30,26 +30,22 @@ router.use((req, res, next) => {
   next();
 });
 
-// ==================== DASHBOARD ROUTES ====================
 router.get('/stats', getDashboardStats);
 router.get('/recent-users', getRecentUsers);
 router.get('/recent-appointments', getRecentAppointments);
 
-// ==================== USER MANAGEMENT ROUTES ====================
 router.get('/users', getAllUsers);
 router.get('/users/:userId', getUserById);
 router.put('/users/:userId/status', updateUserStatus);
 router.put('/users/:userId', updateUser);
 router.delete('/users/:userId', deleteUser);
 
-// ==================== DOCTOR MANAGEMENT ROUTES ====================
 router.get('/doctors', getAllDoctors);
 router.get('/doctors/:doctorId', getDoctorById);
 router.put('/doctors/:doctorId/status', updateDoctorStatus);
 router.put('/doctors/:doctorId', updateDoctor);
 router.delete('/doctors/:doctorId', deleteDoctor);
 
-// ==================== APPOINTMENT MANAGEMENT ROUTES ====================
 router.get('/appointments', getAllAppointments);
 router.get('/appointments/:appointmentId', getAppointmentById);
 router.get('/appointments/stats/summary', getAppointmentStats);

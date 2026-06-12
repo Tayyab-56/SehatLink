@@ -1,4 +1,3 @@
-// server/src/controllers/chatController.js
 const { getMongoDB } = require('../db');
 const { ObjectId } = require('mongodb');
 const { pgQuery } = require('../db');
@@ -6,7 +5,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// ==================== MULTER CONFIGURATION ====================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '../../uploads/chats');
@@ -39,28 +37,19 @@ const upload = multer({
   fileFilter: fileFilter 
 });
 
-// ==================== CONVERSATION FUNCTIONS ====================
-
 // Get or create conversation between patient and doctor
 const getOrCreateConversation = async (req, res) => {
   try {
     const { patientId, doctorId } = req.params;
-    
     console.log('Creating/getting conversation - patientId:', patientId, 'doctorId:', doctorId);
-    
     const mongoDb = getMongoDB();
-    
-    // Check if conversation exists
     let conversation = await mongoDb.collection('conversations').findOne({
       patientId: parseInt(patientId),
       doctorId: parseInt(doctorId)
     });
-    
     if (!conversation) {
-      // Get patient and doctor names
       const patientResult = await pgQuery(`SELECT name FROM users WHERE id = $1`, [parseInt(patientId)]);
       const doctorResult = await pgQuery(`SELECT name FROM users WHERE id = $1`, [parseInt(doctorId)]);
-      
       const newConversation = {
         patientId: parseInt(patientId),
         doctorId: parseInt(doctorId),
@@ -71,7 +60,6 @@ const getOrCreateConversation = async (req, res) => {
         lastMessage: null,
         lastMessageTime: null
       };
-      
       const result = await mongoDb.collection('conversations').insertOne(newConversation);
       conversation = { ...newConversation, _id: result.insertedId };
       console.log('Created new conversation:', conversation._id);
@@ -90,9 +78,7 @@ const getOrCreateConversation = async (req, res) => {
 const getUserConversations = async (req, res) => {
   try {
     const { userId, role } = req.query;
-    
     const mongoDb = getMongoDB();
-    
     let conversations;
     
     if (role === 'patient') {
@@ -106,8 +92,6 @@ const getUserConversations = async (req, res) => {
         .sort({ updatedAt: -1 })
         .toArray();
     }
-    
-    // Get unread count for each conversation
     for (const conv of conversations) {
       const unreadCount = await mongoDb.collection('messages').countDocuments({
         conversationId: conv._id.toString(),

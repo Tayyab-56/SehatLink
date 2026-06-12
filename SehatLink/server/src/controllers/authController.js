@@ -17,9 +17,7 @@ const register = async (req, res) => {
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const result = await pgQuery(
       `INSERT INTO users (name, email, password, role, phone, city) 
        VALUES ($1, $2, $3, $4, $5, $6) 
@@ -28,8 +26,6 @@ const register = async (req, res) => {
     );
 
     const user = result.rows[0];
-
-    // Create role-specific profile
     if (role === 'doctor') {
       await pgQuery(
         `INSERT INTO doctors (user_id, specialization, qualification, experience, fee, city) 
@@ -79,7 +75,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     console.log('=== LOGIN ATTEMPT ===');
     console.log('Email:', email);
 
@@ -95,7 +91,7 @@ const login = async (req, res) => {
 
     const user = result.rows[0];
     console.log('User found:', { id: user.id, email: user.email, role: user.role });
-    
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     console.log('Password valid:', isPasswordValid);
 
@@ -105,7 +101,7 @@ const login = async (req, res) => {
 
     delete user.password;
     const token = generateToken(user.id);
-    
+
     console.log('Login successful, token generated');
     console.log('User role being sent:', user.role);
 
@@ -134,24 +130,25 @@ const getUserById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 // Get complete patient profile with all details
 const getCompleteProfile = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const userResult = await pgQuery(
       `SELECT id, name, email, role, phone, city, avatar, 
               TO_CHAR(created_at, 'Month YYYY') as member_since
        FROM users WHERE id = $1`,
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     const user = userResult.rows[0];
-    
+
     const patientResult = await pgQuery(
       `SELECT blood_group, allergies, 
               TO_CHAR(date_of_birth, 'YYYY-MM-DD') as date_of_birth,
@@ -159,9 +156,9 @@ const getCompleteProfile = async (req, res) => {
        FROM patients WHERE user_id = $1`,
       [userId]
     );
-    
+
     const patient = patientResult.rows[0] || {};
-    
+
     const completeProfile = {
       id: user.id,
       name: user.name,
@@ -177,9 +174,9 @@ const getCompleteProfile = async (req, res) => {
       emergencyContact: patient.emergency_contact_name || '',
       emergencyPhone: patient.emergency_contact_phone || ''
     };
-    
+
     res.json({ success: true, user: completeProfile });
-    
+
   } catch (error) {
     console.error('Get complete profile error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -192,24 +189,21 @@ const uploadAvatar = async (req, res) => {
     console.log('=== UPLOAD AVATAR CALLED ===');
     console.log('Request body:', req.body);
     console.log('Request file:', req.file);
-    
+
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({ success: false, message: 'User ID is required' });
     }
-    
+
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
-    
-    // Check if user exists
     const userCheck = await pgQuery(`SELECT id, avatar FROM users WHERE id = $1`, [userId]);
     if (userCheck.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
-    // Delete old avatar if exists
+
     const oldAvatar = userCheck.rows[0]?.avatar;
     if (oldAvatar) {
       const oldPath = path.join(__dirname, '../../', oldAvatar);
@@ -218,19 +212,16 @@ const uploadAvatar = async (req, res) => {
         console.log('Deleted old avatar:', oldPath);
       }
     }
-    
-    // Update user with new avatar
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
     await pgQuery(`UPDATE users SET avatar = $1 WHERE id = $2`, [avatarUrl, userId]);
-    
-    // Get updated user
+
     const updatedUser = await pgQuery(
       'SELECT id, name, email, role, phone, city, avatar FROM users WHERE id = $1',
       [userId]
     );
-    
+
     console.log('Avatar uploaded successfully:', avatarUrl);
-    
+
     res.json({
       success: true,
       message: 'Profile picture updated successfully',
@@ -243,25 +234,22 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-// Update profile (blood group, allergies, etc.)
+// Update profile
 const updateProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     const { name, phone, city, bloodGroup, allergies, dateOfBirth, emergencyContact, emergencyPhone } = req.body;
-    
+
     console.log('Update profile for userId:', userId);
-    
-    // Update users table
+
     await pgQuery(
       `UPDATE users SET name = $1, phone = $2, city = $3 WHERE id = $4`,
       [name, phone || null, city || null, userId]
     );
-    
-    // Check if patient record exists
+
     const patientExists = await pgQuery(`SELECT id FROM patients WHERE user_id = $1`, [userId]);
-    
+
     if (patientExists.rows.length > 0) {
-      // Update existing patient record
       await pgQuery(
         `UPDATE patients SET 
           blood_group = $1,
@@ -273,28 +261,21 @@ const updateProfile = async (req, res) => {
         [bloodGroup || null, allergies || null, dateOfBirth || null, emergencyContact || null, emergencyPhone || null, userId]
       );
     } else {
-      // Insert new patient record
       await pgQuery(
         `INSERT INTO patients (user_id, blood_group, allergies, date_of_birth, emergency_contact_name, emergency_contact_phone) 
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [userId, bloodGroup || null, allergies || null, dateOfBirth || null, emergencyContact || null, emergencyPhone || null]
       );
     }
-    
-    // Get updated user data
     const updatedUser = await pgQuery(
       'SELECT id, name, email, role, phone, city, avatar, created_at FROM users WHERE id = $1',
       [userId]
     );
-    
-    // Get updated patient data
     const updatedPatient = await pgQuery(
       'SELECT blood_group, allergies, date_of_birth, emergency_contact_name, emergency_contact_phone FROM patients WHERE user_id = $1',
       [userId]
     );
-    
     const patient = updatedPatient.rows[0] || {};
-    
     const completeUser = {
       ...updatedUser.rows[0],
       bloodGroup: patient.blood_group,
@@ -303,13 +284,13 @@ const updateProfile = async (req, res) => {
       emergencyContact: patient.emergency_contact_name,
       emergencyPhone: patient.emergency_contact_phone
     };
-    
+
     res.json({
       success: true,
       message: 'Profile updated successfully',
       user: completeUser
     });
-    
+
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -320,39 +301,33 @@ const updateProfile = async (req, res) => {
 const getDoctorCompleteProfile = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     console.log('====== GET DOCTOR COMPLETE PROFILE ======');
     console.log('User ID:', userId);
-    
+
     if (!userId) {
       return res.status(400).json({ success: false, message: 'User ID is required' });
     }
-    
-    // Get user basic info
     const userResult = await pgQuery(
       `SELECT id, name, email, role, phone, city, avatar, 
               TO_CHAR(created_at, 'Month YYYY') as member_since
        FROM users WHERE id = $1`,
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     const user = userResult.rows[0];
-    
-    // Get doctor specific info (without consultation_duration)
     const doctorResult = await pgQuery(
       `SELECT specialization, qualification, experience, fee, 
               hospital, rating, is_available
        FROM doctors WHERE user_id = $1`,
       [userId]
     );
-    
+
     const doctor = doctorResult.rows[0] || {};
-    
-    // Get doctor's stats
     const statsResult = await pgQuery(
       `SELECT 
          COUNT(DISTINCT patient_id) as total_patients,
@@ -363,10 +338,8 @@ const getDoctorCompleteProfile = async (req, res) => {
        WHERE doctor_id = (SELECT id FROM doctors WHERE user_id = $1)`,
       [userId]
     );
-    
+
     const stats = statsResult.rows[0] || {};
-    
-    // Combine all data
     const completeProfile = {
       id: user.id,
       name: user.name,
@@ -388,12 +361,12 @@ const getDoctorCompleteProfile = async (req, res) => {
       pendingAppointments: parseInt(stats.pending_appointments) || 0,
       totalEarnings: parseInt(stats.total_earnings) || 0
     };
-    
+
     console.log('Doctor complete profile fetched successfully');
     console.log('================================');
-    
+
     res.json({ success: true, user: completeProfile });
-    
+
   } catch (error) {
     console.error('Get doctor complete profile error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -404,20 +377,16 @@ const getDoctorCompleteProfile = async (req, res) => {
 const updateDoctorProfile = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { 
-      name, phone, city, specialization, qualification, 
+    const {
+      name, phone, city, specialization, qualification,
       experience, fee, hospital
     } = req.body;
-    
+
     console.log('Update doctor profile for userId:', userId);
-    
-    // Update users table
     await pgQuery(
       `UPDATE users SET name = $1, phone = $2, city = $3 WHERE id = $4`,
       [name, phone || null, city || null, userId]
     );
-    
-    // Update doctors table (without consultation_duration)
     await pgQuery(
       `UPDATE doctors SET 
         specialization = $1,
@@ -428,21 +397,17 @@ const updateDoctorProfile = async (req, res) => {
        WHERE user_id = $6`,
       [specialization, qualification, experience, fee, hospital || null, userId]
     );
-    
-    // Get updated user data
     const updatedUser = await pgQuery(
       'SELECT id, name, email, role, phone, city, avatar, TO_CHAR(created_at, \'Month YYYY\') as member_since FROM users WHERE id = $1',
       [userId]
     );
-    
-    // Get updated doctor data
     const updatedDoctor = await pgQuery(
       'SELECT specialization, qualification, experience, fee, hospital, rating, is_available FROM doctors WHERE user_id = $1',
       [userId]
     );
-    
+
     const doctor = updatedDoctor.rows[0] || {};
-    
+
     const completeUser = {
       ...updatedUser.rows[0],
       memberSince: updatedUser.rows[0]?.member_since?.trim() || 'January 2024',
@@ -454,13 +419,13 @@ const updateDoctorProfile = async (req, res) => {
       rating: doctor.rating,
       isAvailable: doctor.is_available
     };
-    
+
     res.json({
       success: true,
       message: 'Profile updated successfully',
       user: completeUser
     });
-    
+
   } catch (error) {
     console.error('Update doctor profile error:', error);
     res.status(500).json({ success: false, message: error.message });
